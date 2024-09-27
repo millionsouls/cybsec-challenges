@@ -1,19 +1,24 @@
 b64_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-hex_str = "49276d20616c697665"
+hex_str = "f348ad3849f8f393"
 
 def hexb64(input):
-    hex_bytes = bytes.fromhex(input)
-    val, valb, result = 0, -6, []
-    for byte in hex_bytes:
+    data = bytes(int(input[i:i+2], 16) for i in range(0, len(input), 2))
+    val, bleft, result = 0, -6, []
+
+    for byte in data:
         val = (val << 8) + byte
-        valb += 8
-        while valb >= 0:
-            result.append(b64_table[(val >> valb) & 0x3F])
-            valb -= 6
-    if valb > -6:
-        result.append(b64_table[((val << 8) >> (valb + 8)) & 0x3F])
+        bleft += 8
+
+        while bleft >= 0:
+            result.append(b64_table[(val >> bleft) & 0x3F])
+            bleft -= 6
+
+    if bleft > -6:
+        result.append(b64_table[((val << 8) >> (bleft + 8)) & 0x3F])
+
     while len(result) % 4:
         result.append('=')
+
     return ''.join(result)
 
 
