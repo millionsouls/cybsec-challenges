@@ -6,54 +6,80 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"sort"
+	"strings"
 )
 
-// sum(f * log(f, 2)) for some f frequencies
+type TextEntropy struct {
+	Text    string
+	dText   string
+	Entropy float64
+}
 
-func entropy(data []byte) float64 {
-	var score float64
-	var freqArray [256]float64
+func ShannonEntropy(str string) float64 {
+	str = strings.ToLower(str)
+	totalChars := len(str)
+	entropy := 0.0
 
-	for i := 0; i < len(data); i++ {
-		freqArray[data[i]]++
-	}
-
-	len := float64(len(data))
-
-	for i := 0; i < 256; i++ {
-		if freqArray[i] != 0 {
-			freq := freqArray[i] / len
-			score -= freq * math.Log2(freq)
+	freq := make(map[rune]int)
+	for _, char := range str {
+		if char >= 'a' && char <= 'z' {
+			freq[char]++
 		}
 	}
 
-	return score / 8
+	for _, count := range freq {
+		prob := float64(count) / float64(totalChars)
+
+		if prob > 0 {
+			entropy -= prob * math.Log2(prob)
+		}
+	}
+
+	/*
+		maxEntropy := math.Log2(float64(totalChars))
+
+		if maxEntropy == 0 {
+			return 0
+		}
+	*/
+
+	return (entropy)
 }
 
 func main() {
 	data, err := os.Open("data.txt")
-	frequencies := make(map[int]string)
 
 	if err != nil {
 		panic(err)
 	}
 
+	var results []TextEntropy
 	scanner := bufio.NewScanner(data)
 	for line := 0; scanner.Scan(); line++ {
 		text := scanner.Text()
 
-		num := entropy([]byte(text))
-		// fmt.Println(num, " ", line)
+		//num := entropy([]byte(text))
+		//fmt.Println(num, " ", line)
 
-		dco, _ := hex.DecodeString(text)
-		// fmt.Println(string(dco))
+		//dco, _ := hex.DecodeString(text)
+		//entropy := ShannonEntropyBytes([]byte(text))
+		entropy := ShannonEntropy(text)
+		results = append(results, TextEntropy{Text: text, Entropy: entropy})
 
-		fmt.Printf("%f %s\n", num, dco)
-
-		frequencies[line] = fmt.Sprintf("%f ", num) + string(dco)
+		//fmt.Printf("%.4f\n", entropy)
+		// mt.Printf("%f %s\n", num, dco)
 	}
 
-	// fmt.Println(frequencies)
-
 	defer data.Close()
+
+	sort.Slice(results, func(i, j int) bool { return results[i].Entropy < results[j].Entropy })
+
+	for _, result := range results {
+		fmt.Printf("%s %s %f\n", result.Text, result.dText, result.Entropy)
+	}
+
+	dco, _ := hex.DecodeString(results[0].Text)
+
+	fmt.Printf("Possible String: %s\n", string(dco))
 }
