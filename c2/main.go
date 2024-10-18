@@ -7,7 +7,6 @@ import (
 	"math"
 	"os"
 	"sort"
-	"strings"
 )
 
 type TextEntropy struct {
@@ -16,16 +15,14 @@ type TextEntropy struct {
 	Entropy float64
 }
 
-func ShannonEntropy(str string) float64 {
-	str = strings.ToLower(str)
+func ShannonEntropyByte(str []byte) float64 {
+	// str = strings.ToLower(str)
 	totalChars := len(str)
 	entropy := 0.0
 
-	freq := make(map[rune]int)
+	freq := make(map[byte]int)
 	for _, char := range str {
-		if char >= 'a' && char <= 'z' {
-			freq[char]++
-		}
+		freq[char]++
 	}
 
 	for _, count := range freq {
@@ -35,14 +32,6 @@ func ShannonEntropy(str string) float64 {
 			entropy -= prob * math.Log2(prob)
 		}
 	}
-
-	/*
-		maxEntropy := math.Log2(float64(totalChars))
-
-		if maxEntropy == 0 {
-			return 0
-		}
-	*/
 
 	return (entropy)
 }
@@ -62,13 +51,12 @@ func main() {
 		//num := entropy([]byte(text))
 		//fmt.Println(num, " ", line)
 
-		//dco, _ := hex.DecodeString(text)
-		//entropy := ShannonEntropyBytes([]byte(text))
-		entropy := ShannonEntropy(text)
-		results = append(results, TextEntropy{Text: text, Entropy: entropy})
+		dco, _ := hex.DecodeString(text)
+		entropy := ShannonEntropyByte([]byte(text))
+		results = append(results, TextEntropy{Text: text, dText: string(dco), Entropy: entropy})
 
 		//fmt.Printf("%.4f\n", entropy)
-		// mt.Printf("%f %s\n", num, dco)
+		//fmt.Printf("%f %s\n", num, dco)
 	}
 
 	defer data.Close()
@@ -78,8 +66,4 @@ func main() {
 	for _, result := range results {
 		fmt.Printf("%s %s %f\n", result.Text, result.dText, result.Entropy)
 	}
-
-	dco, _ := hex.DecodeString(results[0].Text)
-
-	fmt.Printf("Possible String: %s\n", string(dco))
 }
